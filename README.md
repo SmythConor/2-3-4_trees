@@ -60,3 +60,6 @@ The rules for insertion into a 2-3-4 tree are:
 ---
 
 Individual assignment
+Deliverables
+===========
+Source codes file and Word document describing the design of your application and a declaration that this is solely your own work
