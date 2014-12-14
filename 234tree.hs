@@ -1,3 +1,8 @@
+-- insert 5 
+-- search 3
+-- display 5
+-- style 2
+-- Total 15
 data Tree t = Empty
 	| Two t (Tree t) (Tree t)
 	|	Three (t,t) (Tree t) (Tree t) (Tree t)
@@ -30,34 +35,36 @@ addNode x (Three (a,b) Empty Empty Empty)
 -- If the left tree is a four tree move middle from four to the two above and
 
 addNode x (Two a l r)
-	| x <= a = case l of (Four (a1,b1,c1) l1 m1 m2 r1)
-																											| x <= b1 -> (Three (b1,a) (addNode x (Two a1 l m1)) (Two c1 m2 r1) r)
-																											| otherwise -> (Three (b1,a) l (addNode x (Two c1 m1 m2)) r)
-											 (Three (a1,b1) l1 m1 r1)
-											 																| x <= a1 -> (Four (x,a1,b1) l1 m1 Empty r1)
-											 																| x >= b1 -> (Four (a1,b1,x) l1 m1 Empty r1)
-																											| otherwise -> (Four (a1,x,b1) l1 m1 Empty r1)
-											 (Two a1 l1 r1)
-											 																| x <= a1 -> (Three (x,a1) l1 Empty r1)
-											 																| otherwise -> (Three (a1,x) l1 Empty r1)
-	| x >= a = case r of (Four (a1,b1,c1) l1 m1 m2 r1)
-																											| x <= a1 -> (Four (a1,b1,c1) (addNode x l1) m1 m2 r1)
-																											| x >= c1 -> (Four (a1,b1,c1) l1 m1 m2 (addNode x r1))
-																											| x <= m1 -> (Four (a1,b1,c1) l1 (addNode x m1) m2 r1)
-																											| otherwise -> (Four (a1,b1,c1) l1 m1 (addNode x m2) r1)
-											 (Three (a1,b1) l1 m1 r1)
-											 																| x <= a1 -> (Four (x,a1,b1) l1 m1 Empty r1)
-											 																| x >= b1 -> (Four (a1,b1,x) l1 m1 Empty r1)
-																											| otherwise -> (Four (a1,x,b1) l1 m1 Empty r1)
-											 (Two a1 l1 r1)
-											 																| x <= a1 -> (Three (x,a1) l1 Empty r1)
-											 																| otherwise -> (Three (a1,x) l1 Empty r1)
-	| otherwise = addNode x l
+  | x <= a = case l of (Four (a1,b1,c1) l1 m1 m2 r1)
+                                                    | x <= a1 -> Three (b1,a) (addNode x (Two a1 l1 m1)) (Two c1 m2 r1) r
+                                                    | otherwise -> Three (b1,a) (Two a1 l1 m1) (addNode x (Two c1 m2 r1)) r
+                       _ -> Two a (addNode x l) r
+  | otherwise = case r of (Four (a1,b1,c1) l1 m1 m2 r1)
+                                                       | x >= c1 -> Three (a,b1) l (addNode x (Two a1 l1 m1)) (Two c1 m2 r1)
+                                                       | otherwise -> Three (a,b1) l (Two a1 l1 m1) (addNode x (Two c1 m2 r1))
+                          _ -> Two a l (addNode x r)
 
---addNode x (Two a l r)
+addNode x (Three (a,b) l m r)
+  | x <= a = case l of (Four (a1,b1,c1) l1 m1 m2 r1)
+                                                    | x <= b1 -> Four (b1,a,b) (addNode x (Two a1 l1 m1)) (Two c1 m2 r1) m r
+                                                    | otherwise -> Four (b1,a,b) (Two a1 l1 m1) (addNode x (Two c1 m2 r1)) m r
+                       _ -> Three (a,b) (addNode x l) m r
+  | x >= b = case r of (Four (a1,b1,c1) l1 m1 m2 r1)
+                                                   | x >= b1 -> Four (a,b,b1) l m (addNode x (Two a1 l1 m1)) (Two c1 m2 r1)
+                                                   | otherwise -> Four (a,b,b1) l m (Two a1 l1 m1) (addNode x (Two c1 m2 r1))
+                       _ -> Three (a,b) l m (addNode x r)
+  | otherwise = case m of (Four (a1,b1,c1) l1 m1 m2 r1)
+                                                       | x <= b1 -> Four (a,b1,b) l (addNode x (Two a1 l1 m1)) (Two c1 m2 r1) r
+                                                       | otherwise -> Four (a,b1,b) l (Two a1 l1 m1) (addNode x (Two c1 m2 r1)) r
+                          _ -> Three (a,b) l (addNode x m) r
+addNode x (Four (a,b,c) l m1 m2 r)
+  | x <= a = Two b (addNode x (Two a l m1)) (Two c m2 r)
+  | otherwise = Two b (Two a l m1) (addNode x (Two c m2 r))
 
--- Tests
-myTree2 x = addNode x Empty
-myTree3 x = addNode x (Two 10 Empty Empty)
-myTree4 x = addNode x (Three (8,12) Empty Empty Empty)
-myTree5 x = addNode x (Two 5 3 10)
+makeTree :: Ord t => [t] -> Tree t
+makeTree x = mTree x Empty
+
+mTree :: Ord t => [t] -> Tree t -> Tree t
+mTree [] t = t
+mTree (x:xs) t = mTree xs (addNode x t)
+
