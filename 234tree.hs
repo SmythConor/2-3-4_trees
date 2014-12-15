@@ -1,10 +1,7 @@
-{- 
-insert 5 maybe 4
-search 3 maybe 3
-display 5
-style 2 maybe 2
-Total 15
--}
+-- Conor Smyth 12452382
+-- 2-3-4 Tree
+-- All work is my own
+
 data Tree t = Empty
 	| Two t (Tree t) (Tree t)
 	|	Three (t,t) (Tree t) (Tree t) (Tree t)
@@ -31,7 +28,7 @@ addNode x (Three (a,b) Empty Empty Empty)
 	| otherwise = Four (a,x,b) Empty Empty Empty Empty
 
 -- If the child node is a Four tree, promote the middle element and turn it into
--- a three tree 
+-- a three tree
 
 addNode x (Two a l r)
   | x <= a = case l of (Four (a1,b1,c1) l1 m1 m2 r1)
@@ -62,20 +59,27 @@ addNode x (Four (a,b,c) l m1 m2 r)
   | x <= b = Two b (addNode x (Two a l m1)) (Two c m2 r)
   | otherwise = Two b (Two a l m1) (addNode x (Two c m2 r))
 
--- Make a tree from a list
+{-- Make a tree from a list
+		Needed for testing
+-}
 
 makeTree :: Ord t => [t] -> Tree t
 makeTree [x] = Two x Empty Empty
 makeTree (x:xs) = addNode x (makeTree xs)
 
--- Search 
+{-- Search
+		Checks the parent item then each node
+		Returns false if item not found
+
+		Usage: search 5 myTree
+-}
 
 search :: Ord a => a -> Tree a -> Bool
 search x Empty = False
 
 search x (Two a l r)
   | x == a = True
-  | x <= a = search x l
+  | x < a = search x l
   | otherwise = search x r
 
 search x (Three (a,b) l m r)
@@ -94,28 +98,41 @@ search x (Four (a,b,c) l m1 m2 r)
   | x < b = search x m1
   | otherwise = search x m2
 
--- Height for doing display
+{-- indent
+		Adds indent
+-}
+indent :: [String] -> [String]
+indent = map ("  \t"++)
 
-height ::  Tree a -> Int
-height Empty = 1
+{-- layoutTree
+		Lays out the tree in a string list
+-}
 
-height (Two a l r) = 1 + (max (height l) (height r))
-height (Three (a,b) l m r) = 1 + (max (max (height l) (height m)) (height r))
-height (Four (a,b,c) l m1 m2 r) = 1 + (max (max (max (height l) (height m1)) (height m2)) (height r))
+layoutTree :: Show a => Tree a -> [String]
+layoutTree Empty = []
+layoutTree (Two a l r) 
+         = indent (layoutTree r) ++ [show a] ++ indent (layoutTree l)
+layoutTree (Three (a,b) l m r)
+         = indent (layoutTree r) ++ [show b] ++ indent (layoutTree m) ++ [show a] ++ indent (layoutTree l)
+layoutTree (Four (a,b,c) l m1 m2 r)
+         = indent (layoutTree r) ++ [show c] ++ indent (layoutTree m2) ++ [show b] ++ indent (layoutTree m1) ++ [show a] ++ indent (layoutTree l)
 
+{-- dTree
+		Returns the list of tree as a string
+-}
+dTree :: Show a => Tree a -> String
+dTree = unlines.layoutTree
 
+{-- displayTree
+		Displays the tree horizontally
+		Not as pretty as hoped
 
+		Usage: displayTree myTree
+-}
 
+displayTree :: Show a => Tree a -> IO()
+displayTree t = putStrLn (dTree t)
 
+-- Test tree
 
-
-
-
-
-
-
-
-
-
-
-
+myTree = makeTree [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
